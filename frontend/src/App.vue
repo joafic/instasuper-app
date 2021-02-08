@@ -22,20 +22,20 @@
           </div>
         </div>
       </div>
-      <div class="p-offset-1 p-col-6">
+      <div class="p-offset-s1 p-col-7">
         <div class=""><b> Visualizar como:</b></div>
       <div class="p-d-flex p-grid">
         <div class="p-mt-2 p-col-4 users">
           <img src="@/assets/blackWidow.png" class="i">
-          <span >dsd</span>
+          <span >Superman</span>
         </div>
         <div class="p-mt-2 p-col-4 users">
           <img src="@/assets/blackWidow.png"  class="i" >
-          <span >dsd</span>
+          <span >Batman</span>
         </div>
         <div class="p-mt-2 p-col-4 users">
           <img src="@/assets/blackWidow.png" class="i">
-          <span >dsd</span>
+          <span >Aquaman</span>
         </div>
       </div>
       </div>
@@ -80,22 +80,22 @@ export default {
 .status b {
  color:black
 }
-.t{
-  display: flex;
-  flex-direction: row;
-}
 .i{
   border-radius: 50%;
   height: 100%;
-  width: 42%;
+  width: 35%;
 }
 .users{
-  border:1px solid rgb(39, 39, 39);
+  /**border:1px solid rgb(39, 39, 39);*/
   cursor:pointer;
   width: 4em;
   height: 4em;
 }
 .users:hover{
   background-color: rgba(0, 0, 0, 0.123);
+}
+.users span {
+  font-size: .9em;
+  margin-left: .3em;
 }
 </style>
