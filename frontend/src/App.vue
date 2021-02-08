@@ -1,6 +1,6 @@
 <template>
 
-<div class="p-col-6 p-offset-3" style="border:1px solid lightgray">
+<div class="p-col-6 p-offset-3 container">
   <div class="p-col-12 p-offset-1">
     <h1>Instasuper #1</h1>
     </div>
@@ -97,5 +97,9 @@ export default {
 .users span {
   font-size: .9em;
   margin-left: .3em;
+}
+.container{
+  border:1px solid lightgray;
+  background-color: hsla(0, 0%, 95%, 0.424)
 }
 </style>
