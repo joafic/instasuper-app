@@ -4,13 +4,13 @@
       <h1>Instasuper #1</h1>
     </div>
     <div class="p-col-12">
-      <h1>Instasuper #2</h1>
+      <h1>{{isLoading}}</h1>
       <div class="p-grid nested-grid">
         <div class="p-col-4" style="border-color: red">
           <div class="p-col-12 p-mt-3">
             <div class="p-grid" style="border-color: blue">
               <div class="profile-picture">
-                <img src="@/assets/superman.png" />
+                <img :src="require(`@/assets/${currentUser.user}.png`)"/>
               </div>
               <div class="p-col-7">
                 <div><b>{{currentUser.user}}</b></div>
@@ -30,15 +30,15 @@
             </div>
             <div class="p-col-12">
               <div class="p-grid">
-                <div class="p-mt-2 p-col-4 users selectedProfile" @click="changeProfile('superman')">
+                <div class="p-mt-2 p-col-4 users " :class="[currentUser.user == 'superman'? {selectedProfile:'selectedProfile'} : '']" @click="changeProfile('superman')">
                   <img src="@/assets/superman.png" class="i" />
                   <span>Superman</span>
                 </div>
-                <div class="p-mt-2 p-col-4 users " @click="changeProfile('batman')">
+                <div class="p-mt-2 p-col-4 users " :class="[currentUser.user == 'batman'? {selectedProfile:'selectedProfile'} : '']" @click="changeProfile('batman')">
                   <img src="@/assets/batman.png" class="i" />
                   <span>Batman</span>
                 </div>
-                <div class="p-mt-2 p-col-4 users" @click="changeProfile('wonderWoman')">
+                <div class="p-mt-2 p-col-4 users" :class="[currentUser.user == 'aquaman'? {selectedProfile:'selectedProfile'} : '']" @click="changeProfile('aquaman')">
                   <img src="@/assets/aquaman.png" class="i" />
                   <span>Aquaman</span>
                 </div>
@@ -48,77 +48,92 @@
         </div>
       </div>
     </div>
+    <posts v-if="isLoading == false" :currentUser="currentUser" :isLoading="isLoading"></posts>
+    
+    
+    
   </div>
 </template>
 
 <script>
 import { onMounted, ref } from 'vue';
 import {getComments, getLikes, getPosts} from './services/superhero-service.js'
+import Posts from './components/posts.vue';
 export default {
   name: "App",
+  components:{ Posts },
 
   setup(){
-    const currentUser = ref({user:'superman',posts:[], comments:[], likes:[]})
+    const currentUser = ref({user:'',posts:[], comments:[], likes:[]})
     const posts = ref(null);
     const comments = ref(null);
     const likes = ref(null);
+    const isLoading = ref(true)
     
     
-    const changeProfile = (user) => {
+    
+    const changeProfile = async (user) => {
+      isLoading.value = true;
       currentUser.value.user = user
-      getUserComments(user)
+      currentUser.value.comments = []
+      currentUser.value.likes = []
+      currentUser.value.posts = []
+      
+      currentUser.value.comments = await getUserComments(user)
+      //currentUser.value.likes = getUserLikes(user)
+      //currentUser.value.posts = getUserPosts(user)
+
     }
 
     const getUserComments = (user) => {
+      console.log(comments.value)
       comments.value.map((c,index)=>{
-              if(c.user == user){
-                currentUser.value.comments[index] = c;
-              }
+              if(c.user == user){ currentUser.value.comments[index] = c; }
             })
+            currentUser.value.totalComments = Object.keys(currentUser.value.comments).length 
     }
+
+    const getUserLikes = (user) => {
+      likes.value.map((l,index)=>{
+                if (l.user == user) { currentUser.value.likes[index] = l; }
+            })
+            currentUser.value.totalLikes = Object.keys(currentUser.value.likes).length
+    }
+
+    const getUserPosts = (user) => {
+      posts.value.map((p,index)=>{
+                if (p.user == user) { currentUser.value.posts[index] = p }
+              })
+              currentUser.value.totalPosts = Object.keys(currentUser.value.posts).length
+    }
+
+    changeProfile('superman')
    
     onMounted(()=>{
+
+      
+
       getPosts().then(resp=>{
          posts.value = resp
-            }).finally(()=>{
-
-              posts.value.map((p,index)=>{
-                if (p.user == currentUser.value.user) {
-                  currentUser.value.posts[index] = p
-                }
-              })
-
-          currentUser.value.totalPosts = Object.keys(currentUser.value.posts).length
-          });
+            }).finally(()=>{ 
+              getUserPosts(currentUser.value.user)
+            });
 
       getComments().then(resp=>{
          comments.value = resp
-            }).finally(()=>{
-
-            comments.value.map((c,index)=>{
-              if(c.user == currentUser.value.user){
-                currentUser.value.comments[index] = c;
-              }
-            })
-
-            currentUser.value.totalComments = Object.keys(currentUser.value.comments).length 
-          });
+            }).finally(()=>{ 
+              getUserComments(currentUser.value.user)
+            });
 
       getLikes().then(resp=>{
          likes.value = resp
-            }).finally(()=>{
-              likes.value.map((l,index)=>{
-                if (l.user == currentUser.value.user) {
-                  currentUser.value.likes[index] = l;
-                }
-            })
-
-            currentUser.value.totalLikes = Object.keys(currentUser.value.likes).length
-          });
+            }).finally(()=>{ 
+              getUserLikes(currentUser.value.user) 
+            });
     })
 
 
-    return { changeProfile,currentUser}
+    return { changeProfile,currentUser,isLoading}
   }
   
 };

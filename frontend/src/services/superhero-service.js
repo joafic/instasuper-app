@@ -15,8 +15,15 @@ const getLikes = async () => {
     return resp.data;
 }
 
+const getPostImage  = async (url) => {
+    console.log(url)
+    const resp = await axios.get(url)
+    return resp.data;
+}
+
 export {
     getPosts,
     getComments,
-    getLikes
+    getLikes,
+    getPostImage
 }
