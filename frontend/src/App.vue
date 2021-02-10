@@ -8,9 +8,9 @@
       <div class="p-grid nested-grid">
         <div class="p-col-4" style="border-color: red">
           <div class="p-col-12 p-mt-3">
-            <div class="p-grid" style="border-color: blue">
+            <div v-if="!isLoading" class="p-grid" style="border-color: blue">
               <div class="profile-picture">
-                <img :src="require(`@/assets/${currentUser.user}.png`)"/>
+                <img :src="require(`@/assets/${currentUser.user}.png`)">
               </div>
               <div class="p-col-7">
                 <div><b>{{currentUser.user}}</b></div>
@@ -48,90 +48,110 @@
         </div>
       </div>
     </div>
-    <posts v-if="isLoading == false" :currentUser="currentUser" :isLoading="isLoading"></posts>
+    <!--<posts v-if="isLoading == false" :currentUser="currentUser" :isLoading="isLoading"></posts>-->
     
-    
+    <div class="p-grid" style="border:1px solid red">
+      <div class="p-col-4 post-img" style="border:1px solid black">
+
+        <img src="https://image.tmdb.org/t/p/w500/oB367uFcyU2uhGkFqo5RB4Evdji.jpg">
+      </div>
+      <div class="p-col-8" style="border:1px solid black">
+          <div class="p-col-12" style="border:1px solid black">6</div>
+          <div class="p-col-12" style="border:1px solid black">6</div>
+      </div>
+    </div>
     
   </div>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, } from 'vue';
 import {getComments, getLikes, getPosts} from './services/superhero-service.js'
-import Posts from './components/posts.vue';
+//import Posts from './components/posts.vue';
 export default {
   name: "App",
-  components:{ Posts },
+  //components:{ Posts },
 
   setup(){
-    const currentUser = ref({user:'',posts:[], comments:[], likes:[]})
+    const currentUser = ref({user:'superman',posts:[], comments:[], likes:[]})
     const posts = ref(null);
     const comments = ref(null);
     const likes = ref(null);
     const isLoading = ref(true)
     
-    
-    
-    const changeProfile = async (user) => {
+    const changeProfile = (user) => {
       isLoading.value = true;
       currentUser.value.user = user
       currentUser.value.comments = []
       currentUser.value.likes = []
       currentUser.value.posts = []
+
+      getUserPosts(user)
+      getUserLikes(user)
+      getUserComments(user)
       
-      currentUser.value.comments = await getUserComments(user)
-      //currentUser.value.likes = getUserLikes(user)
-      //currentUser.value.posts = getUserPosts(user)
+      isLoading.value = false;
 
     }
 
+    watch(currentUser.value,function(newValue){
+      console.log(newValue)
+    });
+    
+    const getUserPosts = (user) => {
+      posts.value.map((p,index)=>{
+         if (p.user == user) { currentUser.value.posts[index] = p; }
+            });
+        currentUser.value.totalPosts = currentUser.value.posts.length
+    }
     const getUserComments = (user) => {
-      console.log(comments.value)
       comments.value.map((c,index)=>{
-              if(c.user == user){ currentUser.value.comments[index] = c; }
-            })
-            currentUser.value.totalComments = Object.keys(currentUser.value.comments).length 
+        if (c.user == user) { currentUser.value.comments[index] = c; }
+            });
+        currentUser.value.totalComments = currentUser.value.comments.length
     }
 
     const getUserLikes = (user) => {
       likes.value.map((l,index)=>{
-                if (l.user == user) { currentUser.value.likes[index] = l; }
-            })
-            currentUser.value.totalLikes = Object.keys(currentUser.value.likes).length
+        if (l.user == user) { currentUser.value.likes[index] = l; }
+            });
+        currentUser.value.totalLikes = currentUser.value.likes.length
     }
 
-    const getUserPosts = (user) => {
-      posts.value.map((p,index)=>{
-                if (p.user == user) { currentUser.value.posts[index] = p }
-              })
-              currentUser.value.totalPosts = Object.keys(currentUser.value.posts).length
-    }
+    getPosts().then(resp => {
+      isLoading.value = true
+      posts.value = resp 
+      })
+      .finally(()=>{
+        getUserPosts('superman')
+        isLoading.value = false
+        });
 
-    changeProfile('superman')
-   
+    getLikes().then(resp=>{
+       isLoading.value = true
+       likes.value = resp
+       })
+       .finally(()=>{ 
+          getUserLikes('superman')
+          isLoading.value = false 
+          });
+
+    getComments().then(resp=>{
+      isLoading.value = true
+      comments.value = resp
+      })
+      .finally(()=>{ 
+        getUserComments('superman')
+        isLoading.value = false 
+        });
+
     onMounted(()=>{
 
+      getPosts()
+      getLikes()
+      getComments()
       
-
-      getPosts().then(resp=>{
-         posts.value = resp
-            }).finally(()=>{ 
-              getUserPosts(currentUser.value.user)
-            });
-
-      getComments().then(resp=>{
-         comments.value = resp
-            }).finally(()=>{ 
-              getUserComments(currentUser.value.user)
-            });
-
-      getLikes().then(resp=>{
-         likes.value = resp
-            }).finally(()=>{ 
-              getUserLikes(currentUser.value.user) 
-            });
     })
-
 
     return { changeProfile,currentUser,isLoading}
   }
@@ -157,6 +177,21 @@ export default {
   margin: 0 auto;
   height: 100%;
   width: auto;
+}
+
+.post-img{
+  display: flex;
+  flex-direction: column;
+  height: 20em;
+  overflow: hidden;
+  
+}
+.post-img img{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: auto;
+  margin: 0;
 }
 .status {
   font-size: 0.85em;
