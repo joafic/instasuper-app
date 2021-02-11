@@ -66,7 +66,7 @@
 
 <script>
 import { onMounted, ref, watch, } from 'vue';
-import {getComments, getLikes, getPosts} from './services/superhero-service.js'
+import {getComments, getLikes, getPosts,getAllData} from './services/superhero-service.js'
 //import Posts from './components/posts.vue';
 export default {
   name: "App",
@@ -86,9 +86,10 @@ export default {
       currentUser.value.likes = []
       currentUser.value.posts = []
 
-      getUserPosts(user)
+
       getUserLikes(user)
       getUserComments(user)
+      getUserPosts(user)
       
       isLoading.value = false;
 
@@ -97,11 +98,15 @@ export default {
     watch(currentUser.value,function(newValue){
       console.log(newValue)
     });
-    
+
     const getUserPosts = (user) => {
       posts.value.map((p,index)=>{
-         if (p.user == user) { currentUser.value.posts[index] = p; }
-            });
+         if (p.user == user) { 
+           currentUser.value.posts[index] = p; 
+            
+           }
+          });
+         
         currentUser.value.totalPosts = currentUser.value.posts.length
     }
     const getUserComments = (user) => {
@@ -117,6 +122,10 @@ export default {
             });
         currentUser.value.totalLikes = currentUser.value.likes.length
     }
+
+   getAllData().then((res)=>{
+     console.log(res.data)
+   })
 
     getPosts().then(resp => {
       isLoading.value = true
@@ -147,9 +156,9 @@ export default {
 
     onMounted(()=>{
 
-      getPosts()
-      getLikes()
-      getComments()
+      //getPosts()
+      //getLikes()
+      //getComments()
       
     })
 
