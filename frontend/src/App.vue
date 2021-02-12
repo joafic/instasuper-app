@@ -1,14 +1,16 @@
 <template>
+    
   <div class="p-col-8 p-offset-2 container">
+    <div style="text-align:center"><ProgressSpinner v-if="isLoading"/></div> 
     <div class="p-gird p-offset-1">
       <h1>Instasuper #1</h1>
     </div>
     <div class="p-col-12">
       <h1>{{isLoading}}</h1>
       <div class="p-grid nested-grid">
-        <div class="p-col-4" style="border-color: red">
+        <div class="p-col-4">
           <div class="p-col-12 p-mt-3">
-            <div v-if="!isLoading" class="p-grid" style="border-color: blue">
+            <div v-if="!isLoading" class="p-grid">
               <div class="profile-picture">
                 <img :src="require(`@/assets/${currentUser.user}.png`)">
               </div>
@@ -50,14 +52,36 @@
     </div>
     <!--<posts v-if="isLoading == false" :currentUser="currentUser" :isLoading="isLoading"></posts>-->
     
-    <div class="p-grid" style="border:1px solid red">
+    <div v-for="(post,index) in posts" :key="index" class="p-grid" style="border:1px solid red">
       <div class="p-col-4 post-img" style="border:1px solid black">
 
-        <img src="https://image.tmdb.org/t/p/w500/oB367uFcyU2uhGkFqo5RB4Evdji.jpg">
+        <img v-if="post.picture && typeof post.picture ==='string'" :src="post.picture">
       </div>
       <div class="p-col-8" style="border:1px solid black">
-          <div class="p-col-12" style="border:1px solid black">6</div>
-          <div class="p-col-12" style="border:1px solid black">6</div>
+          <div class="p-col-12" style="border:1px solid black">
+            <div class="p-grid">
+              <div class="p-md-2">
+                <div class="profile-picture post">
+                  <img :src="require(`@/assets/${currentUser.user}.png`)">
+                </div>
+              </div>
+             
+              <div class="p-col-10 ">
+                <div class="p-grid">
+                  <div class="p-col-4 p-md-4"><b>{{currentUser.user}}</b></div>
+                  <div class="p-col-8">{{post.comments[0].comment}}</div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="p-d-flex p-flex-row icons">
+                  <b> <i class="pi pi-heart"></i> {{post.likes.length}}</b>
+                  <b><i class="pi pi-book"></i> {{post.comments.length}} </b>
+                </div>
+              </div>
+              
+            </div>
+            </div>
+          <div v-for="(comment,index) in post.comments" :key="index" class="p-col-12" style="border:1px solid black"><b>{{comment.user}}</b> {{comment.comment}}</div>
       </div>
     </div>
     
@@ -66,7 +90,7 @@
 
 <script>
 import { onMounted, ref, watch, } from 'vue';
-import {getComments, getLikes, getPosts,getAllData} from './services/superhero-service.js'
+import { getAllData} from './services/superhero-service.js'
 //import Posts from './components/posts.vue';
 export default {
   name: "App",
@@ -86,7 +110,6 @@ export default {
       currentUser.value.likes = []
       currentUser.value.posts = []
 
-
       getUserLikes(user)
       getUserComments(user)
       getUserPosts(user)
@@ -99,11 +122,44 @@ export default {
       console.log(newValue)
     });
 
+    const getComment = (postId) => {
+      
+       currentUser.value.comments.map((comment)=>{
+      if (comment.postId === postId){
+        console.log(comment.postId + ' : ' + postId) 
+      }
+      return
+      })
+  
+    }
+
+    getAllData().then((res)=>{
+      isLoading.value = true;
+
+      likes.value = res.likes.data
+      comments.value = res.comments.data
+      posts.value = res.posts.data
+
+      posts.value.forEach(post => {
+        post.comments = [
+          ...comments.value.filter((comment) => comment.postId == post.id)
+        ];
+        post.likes = [...likes.value.filter((like) =>like.postId == post.id)]
+        
+      });
+      getUserLikes('superman')
+      getUserComments('superman')
+      getUserPosts('superman')
+      
+      }).finally(()=>{
+        isLoading.value = false
+        console.log(posts.value)
+    });
+
     const getUserPosts = (user) => {
       posts.value.map((p,index)=>{
          if (p.user == user) { 
            currentUser.value.posts[index] = p; 
-            
            }
           });
          
@@ -123,11 +179,8 @@ export default {
         currentUser.value.totalLikes = currentUser.value.likes.length
     }
 
-   getAllData().then((res)=>{
-     console.log(res.data)
-   })
-
-    getPosts().then(resp => {
+   
+   /** getPosts().then(resp => {
       isLoading.value = true
       posts.value = resp 
       })
@@ -136,7 +189,7 @@ export default {
         isLoading.value = false
         });
 
-    getLikes().then(resp=>{
+    getLikes().then((resp)=>{
        isLoading.value = true
        likes.value = resp
        })
@@ -144,7 +197,7 @@ export default {
           getUserLikes('superman')
           isLoading.value = false 
           });
-
+    
     getComments().then(resp=>{
       isLoading.value = true
       comments.value = resp
@@ -153,16 +206,16 @@ export default {
         getUserComments('superman')
         isLoading.value = false 
         });
-
+    */
     onMounted(()=>{
-
+      //console.log(posts.value)
       //getPosts()
       //getLikes()
       //getComments()
       
     })
 
-    return { changeProfile,currentUser,isLoading}
+    return { changeProfile,currentUser,isLoading,posts,getComment}
   }
   
 };
@@ -187,6 +240,11 @@ export default {
   height: 100%;
   width: auto;
 }
+.post{
+  width: 4em;
+  height: 4em;
+  margin: .2em 0 0 .2em;
+}
 
 .post-img{
   display: flex;
@@ -209,6 +267,10 @@ export default {
 }
 .status b {
   color: black;
+}
+
+.icons b{
+  margin: .3em;
 }
 .i {
   border-radius: 50%;

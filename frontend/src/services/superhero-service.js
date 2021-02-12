@@ -42,7 +42,8 @@ const getAllData = async () =>{
             }
         })
     });
-    return posts;
+    
+    return {posts,likes,comments};
 
 }
 
